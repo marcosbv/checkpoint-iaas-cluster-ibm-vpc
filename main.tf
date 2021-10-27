@@ -1,7 +1,17 @@
 ##############################################################################
 # IBM Cloud Provider
 ##############################################################################
+terraform {
+  required_providers {
+    ibm = {
+      source = "IBM-Cloud/ibm"
+      version = "~> 1.34.0"
+    }
+  }
+}
 
+
+/*
 provider "ibm" {
   ibmcloud_api_key = var.ibmcloud_api_key
   generation       = 2
@@ -9,6 +19,7 @@ provider "ibm" {
   ibmcloud_timeout = 300
   resource_group   = var.Resource_Group
 }
+*/
 
 ##############################################################################
 # Variable block - See each variable description
@@ -122,6 +133,7 @@ data "ibm_resource_group" "rg" {
   name = var.Resource_Group
 }
 
+
 ##############################################################################
 # Create Security Group
 ##############################################################################
@@ -176,7 +188,8 @@ resource "ibm_is_instance" "cp_gw_vsi_1" {
   keys = [data.ibm_is_ssh_key.cp_ssh_pub_key.id]
 
   #Custom UserData
-  user_data = file("user_data_gw1")
+  user_data = ""
+  //user_data = file("user_data_gw1")
 
   timeouts {
     create = "15m"
@@ -211,7 +224,8 @@ resource "ibm_is_instance" "cp_gw_vsi_2" {
   keys = [data.ibm_is_ssh_key.cp_ssh_pub_key.id]
 
   #Custom UserData
-  user_data = file("user_data_gw2")
+  user_data = ""
+  //user_data = file("user_data_gw2")
 
   timeouts {
     create = "15m"
@@ -221,4 +235,12 @@ resource "ibm_is_instance" "cp_gw_vsi_2" {
   provisioner "local-exec" {
     command = "sleep 30"
   }
+}
+
+output firewall_instance_ids {
+  value = [ibm_is_instance.cp_gw_vsi_1.id, ibm_is_instance.cp_gw_vsi_2.id]
+}
+
+output firewall_network_ips {
+  value = [ibm_is_instance.cp_gw_vsi_1.primary_network_interface[0].primary_ipv4_address, ibm_is_instance.cp_gw_vsi_2.primary_network_interface[0].primary_ipv4_address]
 }
