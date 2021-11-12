@@ -5,7 +5,7 @@ terraform {
   required_providers {
     ibm = {
       source = "IBM-Cloud/ibm"
-      version = "~> 1.34.0"
+      version = "~> 1.35.0"
     }
   }
 }
@@ -105,6 +105,12 @@ variable "TF_VERSION" {
  description = "terraform engine version to be used in schematics"
 }
 
+variable tags {
+  default = []
+  type = list(string)
+  description = "Tags to insert into deployed resources."
+}
+
 ##############################################################################
 # Data block 
 ##############################################################################
@@ -142,6 +148,7 @@ resource "ibm_is_security_group" "ckp_security_group" {
   name           = var.VNF_Security_Group
   vpc            = data.ibm_is_vpc.cp_vpc.id
   resource_group = data.ibm_resource_group.rg.id
+  tags = var.tags
 }
 
 #Egress All Ports
@@ -181,7 +188,10 @@ resource "ibm_is_instance" "cp_gw_vsi_1" {
     name            = "eth0"
     subnet          = data.ibm_is_subnet.cp_subnet.id
     security_groups = [ibm_is_security_group.ckp_security_group.id]
+    allow_ip_spoofing = true
   }
+
+  tags = var.tags
 
   vpc  = data.ibm_is_vpc.cp_vpc.id
   zone = data.ibm_is_subnet.cp_subnet.zone
@@ -217,8 +227,11 @@ resource "ibm_is_instance" "cp_gw_vsi_2" {
     name            = "eth0"
     subnet          = data.ibm_is_subnet.cp_subnet.id
     security_groups = [ibm_is_security_group.ckp_security_group.id]
+    allow_ip_spoofing = true
   }
 
+  tags = var.tags
+  
   vpc  = data.ibm_is_vpc.cp_vpc.id
   zone = data.ibm_is_subnet.cp_subnet.zone
   keys = [data.ibm_is_ssh_key.cp_ssh_pub_key.id]
